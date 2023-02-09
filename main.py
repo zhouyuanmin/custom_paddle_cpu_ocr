@@ -2,6 +2,7 @@ import re
 import time
 import uvicorn
 import cv2
+import base64
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -63,7 +64,7 @@ def distinguish(data):
         elif len(text) in [2, 3]:
             words_result["NAME"].append(text)
         elif re.findall(
-                r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
+            r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
         ):
             _ = re.findall(
                 r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
@@ -88,13 +89,14 @@ async def ocr(item: Item):
     image = item.pic
 
     # 裁剪，保持base64格式
-    cv2_image = cv2.imread(image)
+    cv2_image = PaddleOCR.base64_to_image(image)
     crop_image = detect_card(cv2_image)
-    if crop_image:  # 处理None,裁剪成功则用,否则用原图
-        image = crop_image
+    if crop_image is not None:  # 处理None,裁剪成功则用,否则用原图
+        base64_str = cv2.imencode(".jpg", cv2_image)[1].tobytes()
+        image = base64.b64encode(base64_str)
 
     # 解析文字
-    res = _ocr.run(image=item.pic)
+    res = _ocr.run(image=image)
 
     if not res:
         data["code"] = 400
