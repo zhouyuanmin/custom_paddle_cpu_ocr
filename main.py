@@ -92,7 +92,7 @@ async def ocr(item: Item):
     cv2_image = PaddleOCR.base64_to_image(image)
     crop_image = detect_card(cv2_image)
     if crop_image is not None:  # 处理None,裁剪成功则用,否则用原图
-        base64_str = cv2.imencode(".jpg", cv2_image)[1].tobytes()
+        base64_str = cv2.imencode(".jpg", crop_image)[1].tobytes()
         image = base64.b64encode(base64_str)
 
     # 解析文字

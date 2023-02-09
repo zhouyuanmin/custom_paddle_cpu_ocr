@@ -1,6 +1,9 @@
 import re
 import time
 import base64
+from io import BytesIO
+from PIL import Image
+
 import requests
 
 
@@ -15,14 +18,25 @@ def task(file_path=""):
     return res
 
 
+def base64_to_image(base64_str):  # 用 b.show()可以展示
+    image = base64.b64decode(base64_str, altchars=None, validate=False)
+    image = BytesIO(image)
+    image = Image.open(image)
+    return image
+
+
 # r = task("/Users/myard/Desktop/5.jpg")
 #
 # r = task("/Users/myard/Desktop/名片裁剪/1.jpg")
 # rj = r.json()
 # print(rj)
-for i in range(1,14):
+for i in range(1, 14):
     r = task(f"/Users/myard/Desktop/名片裁剪/{i}.jpg")
     rj = r.json()
+    im = rj.pop("image")  # 太大,不打印
+    img = base64_to_image(im)
+    img.save(f"{i}.jpg")
+
     print(rj)
 
 
