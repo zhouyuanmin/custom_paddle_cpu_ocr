@@ -42,6 +42,7 @@ def distinguish(data):
     #                       [[[781.0, 642.0], [1373.0, 638.0], [1373.0, 671.0], [781.0, 675.0]], ['中国电信集团系统集成有限责任公司湖南分公司', 0.9358140826225281]], [[[779.0, 691.0], [1381.0, 687.0], [1382.0, 725.0], [779.0, 729.0]], ['中国电信股份有限公司湖南系统集成分公司', 0.9749830961227417]], [[[459.0, 705.0], [670.0, 705.0], [670.0, 731.0], [459.0, 731.0]], ['CHINA TELECOM', 0.910104513168335]], [[[779.0, 778.0], [1353.0, 774.0], [1353.0, 805.0], [779.0, 809.0]], ['地址：长沙市东二环1032号电信大楼37楼', 0.8925909399986267]],
     #                       [[[781.0, 818.0], [980.0, 818.0], [980.0, 849.0], [781.0, 849.0]], ['邮箱：410016', 0.9491695761680603]], [[[781.0, 856.0], [1069.0, 854.0], [1069.0, 887.0], [781.0, 889.0]], ['手机：15343013266', 0.9096843004226685]], [[[781.0, 898.0], [1198.0, 898.0], [1198.0, 929.0], [781.0, 929.0]], ['邮箱：15343013266@189.cn', 0.9416183233261108]]]], 'msg': '识别成功', 'code': 200}
     ocr_text = data.get("ocr_text")
+    flip_status = False  # 邮箱在手机号上面,则需要翻转,置位True
 
     words_result = {
         "TITLE": [],
@@ -70,6 +71,9 @@ def distinguish(data):
                 r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
             )
             words_result["EMAIL"].extend(_)
+            # 判断名片是否翻转
+            if not words_result["MOBILE"]:
+                flip_status = True
         elif re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text):
             _ = re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text)
             words_result["MOBILE"].extend(_)
@@ -80,7 +84,7 @@ def distinguish(data):
         "words_result": words_result,
         "log_id": str(time.time_ns()),
     }
-    return _data
+    return _data, flip_status
 
 
 @app.post("/ocr_card")
@@ -104,7 +108,9 @@ async def ocr(item: Item):
     data["ocr_text"] = res
     data["msg"] = "识别成功"
 
-    data["ocr_text"] = distinguish(data)
+    data["ocr_text"], flip_status = distinguish(data)
+    if flip_status:
+        image = cv2.flip(crop_image, 0)
     data["image"] = image
     return data
 
