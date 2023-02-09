@@ -1,10 +1,12 @@
 import re
 import time
 import uvicorn
+import cv2
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from carddtv3 import detect_card
 from paddle_ocr import PaddleOCR
 
 app = FastAPI()
@@ -52,7 +54,7 @@ def distinguish(data):
     for item in ocr_text:
         text = item[1][0]
         if ("地址" in text) or ("号" in text) or ("楼" in text):
-            addr = text.split('：')[-1]
+            addr = text.split("：")[-1]
             words_result["ADDR"].append(addr)
         elif "公司" in text:
             words_result["COMPANY"].append(text)
@@ -60,11 +62,15 @@ def distinguish(data):
             words_result["TITLE"].append(text)
         elif len(text) in [2, 3]:
             words_result["NAME"].append(text)
-        elif re.findall(r'[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}', text, re.S):
-            _ = re.findall(r'[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}', text, re.S)
+        elif re.findall(
+            r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
+        ):
+            _ = re.findall(
+                r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
+            )
             words_result["EMAIL"].extend(_)
-        elif re.findall(r'(?:\D|^)(1[3456789]\d{9})(?:\D|$)', text):
-            _ = re.findall(r'(?:\D|^)(1[3456789]\d{9})(?:\D|$)', text)
+        elif re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text):
+            _ = re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text)
             words_result["MOBILE"].extend(_)
         else:
             words_result["OTHER"].append(text)
@@ -79,6 +85,15 @@ def distinguish(data):
 @app.post("/ocr_card")
 async def ocr(item: Item):
     data = {"ocr_text": {}, "msg": "无法识别", "code": 200}
+    image = item.pic
+
+    # 裁剪，保持base64格式
+    cv2_image = cv2.imread(image)
+    crop_image = detect_card(cv2_image)
+    if crop_image:  # 处理None,裁剪成功则用,否则用原图
+        image = crop_image
+
+    # 解析文字
     res = _ocr.run(image=item.pic)
 
     if not res:
@@ -88,6 +103,7 @@ async def ocr(item: Item):
     data["msg"] = "识别成功"
 
     data["ocr_text"] = distinguish(data)
+    data["image"] = image
     return data
 
 
