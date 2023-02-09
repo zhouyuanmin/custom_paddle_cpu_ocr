@@ -51,7 +51,7 @@ def distinguish(data):
         "NAME": [],
         "OTHER": [],
     }
-    for item in ocr_text:
+    for item in ocr_text:  # for item in ocr_text[0]:
         text = item[1][0]
         if ("地址" in text) or ("号" in text) or ("楼" in text):
             addr = text.split("：")[-1]
@@ -63,7 +63,7 @@ def distinguish(data):
         elif len(text) in [2, 3]:
             words_result["NAME"].append(text)
         elif re.findall(
-            r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
+                r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
         ):
             _ = re.findall(
                 r"[a-zA-Z]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,15}", text, re.S
