@@ -111,6 +111,9 @@ async def ocr(item: Item):
     data["ocr_text"], flip_status = distinguish(data)
     if flip_status:
         image = cv2.flip(crop_image, 0)
+        image = cv2.flip(image, 1)
+        base64_str = cv2.imencode(".jpg", image)[1].tobytes()
+        image = base64.b64encode(base64_str)
     data["image"] = image
     return data
 
