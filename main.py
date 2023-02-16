@@ -74,7 +74,7 @@ def distinguish(data):
             # 判断名片是否翻转
             if not words_result["MOBILE"]:
                 flip_status = True
-        elif re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text):
+        elif re.findall(r"(?:\D|^|86)(1[3456789]\d{9})(?:\D|$)", text):
             _ = re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text)
             words_result["MOBILE"].extend(_)
         else:
@@ -109,7 +109,7 @@ async def ocr(item: Item):
     data["msg"] = "识别成功"
 
     data["ocr_text"], flip_status = distinguish(data)
-    if flip_status:
+    if flip_status and crop_image:
         image = cv2.flip(crop_image, 0)
         image = cv2.flip(image, 1)
         base64_str = cv2.imencode(".jpg", image)[1].tobytes()
