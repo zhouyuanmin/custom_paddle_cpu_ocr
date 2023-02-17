@@ -74,8 +74,8 @@ def distinguish(data):
             # 判断名片是否翻转
             if not words_result["MOBILE"]:
                 flip_status = True
-        elif re.findall(r"(?:\D|^|86)(1[3456789]\d{9})(?:\D|$)", text):
-            _ = re.findall(r"(?:\D|^)(1[3456789]\d{9})(?:\D|$)", text)
+        elif re.findall(r"(?:\D|^|\+86)([17][3456789]\d{9})(?:\D|$)", text):
+            _ = re.findall(r"(?:\D|^|\+86)([17][3456789]\d{9})(?:\D|$)", text)
             words_result["MOBILE"].extend(_)
         else:
             words_result["OTHER"].append(text)
