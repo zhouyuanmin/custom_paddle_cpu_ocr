@@ -55,7 +55,7 @@ def distinguish(data):
     }
     for item in ocr_text:  # for item in ocr_text[0]:
         text = item[1][0]
-        if ("地址" in text) or ("号" in text) or ("楼" in text):
+        if ("地址" in text) or ("号" in text) or ("楼" in text) or ("市" in text):
             addr = text.split("：")[-1]
             words_result["ADDR"].append(addr)
         elif "公司" in text:
