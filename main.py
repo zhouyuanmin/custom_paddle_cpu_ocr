@@ -53,7 +53,7 @@ def distinguish(data):
         "NAME": [],
         "OTHER": [],
     }
-    for item in ocr_text:  # for item in ocr_text[0]:
+    for item in ocr_text[0]:  # for item in ocr_text:
         text = item[1][0]
         if ("地址" in text) or ("号" in text) or ("楼" in text) or ("市" in text):
             addr = text.split("：")[-1]
